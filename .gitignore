@@ -1,0 +1,6 @@
+# IDEs data
+*.idea
+*.vscode
+
+# Adicionem coisas aqui quando encontrarem arquivos temporários chatos
+*__pycache__
