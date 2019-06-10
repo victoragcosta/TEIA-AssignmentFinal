@@ -8,7 +8,7 @@ O conjunto de dados escolhido é bastante comum e famoso para treino e prediçõ
 
 Este conjunto de dados consistem em 1000 áudios de 30 segundos cada, contendo 10 gêneros diferentes, cada um contendo 100 áudios. Todos os áudios possuem frequência máxima de 22050Hz, todas em mono 16-bits no formato '.wav'.
 
-O conjunto de dados foi criado gradualmente pela autora[1] entre 2000 e 2001, juntando músicas de diversas fontes (CDs, rádios, gravações pelo microfone), todas de sua coleção particular, não possuindo direitos autorais nem os nomes das músicas, entretanto apresentando músicas advindas sobe diversas condições de qualidade, o que é muito interessante para o treinamento.
+O conjunto de dados foi criado gradualmente pela autora[1] entre 2000 e 2001, juntando músicas de diversas fontes (CDs, rádios, gravações pelo microfone), todas de sua coleção particular, não possuindo direitos autorais nem os nomes das músicas, entretanto apresentando músicas advindas sobe diversas condições e qualidade, o que é muito interessante para o treinamento.
 
 Este dataset possui aproximadamente 1.2GB e pode ser obtido em: http://opihi.cs.uvic.ca/sound/genres.tar.gz
 
