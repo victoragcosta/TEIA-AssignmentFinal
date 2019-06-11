@@ -17,6 +17,9 @@ Este dataset possui aproximadamente 1.2GB e pode ser obtido em: http://opihi.cs.
 
 [2] "Musical genre classification of audio signals " by G. Tzanetakis and P. Cook in IEEE Transactions on Audio and Speech Processing 2002. Acessado em 10 de Junho de 2019. Disponível em: https://ieeexplore.ieee.org/document/1021072
 
+[3] Sturm, Bob L. "An Analysis of the GTZAN Music Genre Dataset" - Aalborg Universitet
+ - 2012. Acessado em 10 de Junho de 2019. Disponível em: https://vbn.aau.dk/ws/portalfiles/portal/74499095/GTZANDB.pdf
+
 ### Informações úteis
 #### Bibliotecas de Áudio:
 - Librosa (Foco em análise de áudio: extração de features (centroide, roll-off e muitas outras), plots (taís como waveform, spectrograma) e escrita de áudio) [4]
