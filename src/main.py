@@ -1,12 +1,12 @@
 # Programa para implementar um classificador de gêneros musicais.
 
-# Número de versão:
+# Metadados:
 PROGRAM_NAME = 'musiclassifier'
 VERSION_NUM = '0.0.1'
 
-# Bibliotecas
-import numpy as np
+# Bibliotecas:
 import argparse
+import numpy as np
 import pandas as pd
 import keras
 
