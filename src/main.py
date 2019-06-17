@@ -8,6 +8,7 @@ VERSION_NUM = '0.0.1'
 import argparse
 import numpy as np
 import pandas as pd
+import cnn
 import keras
 
 # Argumentos do programa:
@@ -27,3 +28,7 @@ parser.add_argument('-o', '--output-dir', default='out/',
 parser.add_argument('-v', '--version', action='version',
                     version=f'%(prog)s {VERSION_NUM}')
 args = parser.parse_args()
+
+# Train model example
+# model = cnn.init(input_shape)
+# cnn.train(model, x_train, y_train, x_test, y_test)
