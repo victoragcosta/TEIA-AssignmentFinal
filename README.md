@@ -6,7 +6,7 @@ Foi utilizado um conjunto de dados pronto (conjunto de treino e teste devidament
 
 O conjunto de dados escolhido é bastante comum e famoso para treino e predições de gêneros musicais, o GTZAN[1], usado também em " Musical genre classification of audio signals " by G. Tzanetakis and P. Cook in IEEE Transactions on Audio and Speech Processing 2002.[2]
 
-Este conjunto de dados consistem em 1000 áudios de 30 segundos cada, contendo 10 gêneros diferentes, cada um contendo 100 áudios. Todos os áudios possuem frequência máxima de 22050Hz, todas em mono 16-bits no formato '.au'. Cada conjunto de áudio esta contido em uma pasta diferente que representam os gêneros musicais: blue, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock.
+Este conjunto de dados consistem em 1000 áudios de 30 segundos cada, contendo 10 gêneros diferentes, cada um contendo 100 áudios. Todos os áudios possuem frequência de amostragem ajustada para 22050Hz, em mono 16-bits no formato '.au'. Cada conjunto de áudio esta contido em uma pasta diferente que representam os gêneros musicais: blue, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock.
 
 O conjunto de dados foi criado gradualmente pela autora[1] entre 2000 e 2001, juntando músicas de diversas fontes (CDs, rádios, gravações pelo microfone), todas de sua coleção particular, não possuindo direitos autorais nem os nomes das músicas, entretanto apresentando músicas advindas sobe diversas condições e qualidade, o que é muito interessante para o treinamento.
 
