@@ -4,3 +4,5 @@
 
 # Adicionem coisas aqui quando encontrarem arquivos temporários chatos
 *__pycache__
+data/*.tar.gz
+data/genres/
