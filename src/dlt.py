@@ -51,7 +51,7 @@ class DLT:
         self.n_unread_audios = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
         self.n_audios_train = (sum(self.n_unread_audios) * train_percent) // 100
         self.n_audios_test = (sum(self.n_unread_audios) * (100 - train_percent)) // 100
-        self.path='../data/genres'
+        self.path='data/genres'
 
         if format == 'spectrogram':
             self.f_function = lambda x: librosa.amplitude_to_db(np.abs(librosa.stft(x)), ref=np.max)
@@ -129,7 +129,7 @@ class DLT:
             path=self.path,
             folder=self.labels[genre_index],
             genre=self.labels[genre_index],
-            n=self.n_unread_audios[genre_index]-1)
+            n=100-self.n_unread_audios[genre_index])
 
         audio = lb.core.load(audio_name)[0]
         audio_duration = lb.core.get_duration(audio)
