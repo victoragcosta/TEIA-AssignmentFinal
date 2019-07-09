@@ -14,6 +14,7 @@ import pandas as pd
 # Módulos de usuário:
 import cnn
 import dlt
+import csvconverter
 
 # Argumentos do programa:
 parser = argparse.ArgumentParser(prog=f'{PROGRAM_NAME}',
@@ -23,6 +24,9 @@ parser.add_argument('-b', '--batch-size', default=10, type=int,
 parser.add_argument('-e', '--epoch-num', default=10, type=int,
                     dest='epoch_num',
                     help="number of training epochs run by the program.")
+parser.add_argument('--output-csv', default="train_history.csv", type=str,
+                    dest='filename_train',
+                    help="output of train history as CSV file.")
 parser.add_argument('-f', '--format', default='spectrogram',
                     choices=["chroma_stft", "spectrogram"],
                     help="music format used to train the neural network.")
@@ -99,4 +103,8 @@ print("Data extracted!")
 # Train model:
 
 model = cnn.init(input_shape)
-cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=args.epoch_num)
+history = cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=args.epoch_num)
+
+## Save training history in .csv file
+csvconverter.savecsv(csvconverter.converter(history.history),
+                     args.filename_train)
