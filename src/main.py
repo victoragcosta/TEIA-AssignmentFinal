@@ -63,9 +63,14 @@ test_num = (args.track_num * (100 - args.train_percent))//100
 train_data = dlt_obj.get_train(n_audio=train_num)
 test_data = dlt_obj.get_test(n_audio=test_num)
 
+# Remove different input shapes
+first_shape = train_data[0][1][0].shape
+train_data = [x for x in train_data if x[1][0].shape == first_shape]
+test_data = [x for x in train_data if x[1][0].shape == first_shape]
+
 ## Extract features with normalization:
-train_features = [x[1][0]/800 for x in train_data]
-test_features = [x[1][0]/800 for x in test_data]
+train_features = np.array([x[1][0]/800 for x in train_data])
+test_features = np.array([x[1][0]/800 for x in test_data])
 
 ## Extract and format outputs:
 train_labels = np.array([x[0] for x in train_data])
@@ -75,21 +80,22 @@ train_labels = keras.utils.to_categorical(train_labels, num_classes)
 test_labels = keras.utils.to_categorical(test_labels, num_classes)
 
 ## Format backend data:
-print(train_features[0])
-print(train_features[0].shape[0])
 
-# if K.image_data_format() == 'channels_first':
-#     x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-#     x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-#     input_shape = (1, img_rows, img_cols)
-# else:
-#     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-#     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-#     input_shape = (img_rows, img_cols, 1)
+img_rows = len(train_features[0])
+img_cols = len(train_features[0][0])
+
+if K.image_data_format() == 'channels_first':
+    x_train = train_features.reshape(len(train_features), 1, img_rows, img_cols)
+    x_test = test_features.reshape(len(test_features), 1, img_rows, img_cols)
+    input_shape = (1, img_rows, img_cols)
+else:
+    x_train = train_features.reshape(len(train_features), img_rows, img_cols, 1)
+    x_test = test_features.reshape(len(test_features), img_rows, img_cols, 1)
+    input_shape = (img_rows, img_cols, 1)
 
 print("Data extracted!")
 
 # Train model:
 
-# model = cnn.init(input_shape)
-# cnn.train(model, x_train, y_train, x_test, y_test)
+model = cnn.init(input_shape)
+cnn.train(model, x_train, train_labels, x_test, test_labels)
