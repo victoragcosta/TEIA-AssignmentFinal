@@ -20,7 +20,8 @@ parser = argparse.ArgumentParser(prog=f'{PROGRAM_NAME}',
                                  description='Musical genre classifier.')
 parser.add_argument('-b', '--batch-size', default=10, type=int,
                     help="batch size used for training the neural network.")
-parser.add_argument('-e', '--epoch-num', default=5, type=int,
+parser.add_argument('-e', '--epoch-num', default=10, type=int,
+                    dest='epoch_num',
                     help="number of training epochs run by the program.")
 parser.add_argument('-f', '--format', default='spectrogram',
                     choices=["chroma_stft", "spectrogram"],
@@ -98,4 +99,4 @@ print("Data extracted!")
 # Train model:
 
 model = cnn.init(input_shape)
-cnn.train(model, x_train, train_labels, x_test, test_labels)
+cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=epoch_num)
