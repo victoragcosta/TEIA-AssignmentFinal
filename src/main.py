@@ -99,4 +99,4 @@ print("Data extracted!")
 # Train model:
 
 model = cnn.init(input_shape)
-cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=epoch_num)
+cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=args.epoch_num)
