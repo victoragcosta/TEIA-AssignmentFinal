@@ -178,11 +178,11 @@ def plot_data(data, x_axis='time', y_axis='log', title='', plot=True, save=False
     :param image_path: (string, default: '') - Image path to be saved
     :param image_name: (string, default: '') - Image name to be saved
     """
-    lines = 100 * (1 + len(data) // 2)
-    columns = 10 * 2
+    lines = (1 + len(data) // 2)
+    columns = 2
 
     for i, d in enumerate(data):
-        plt.subplot(lines + columns + (i+1))
+        plt.subplot(lines, columns, (i+1))
         lb.display.specshow(d, x_axis=x_axis, y_axis=y_axis)
         plt.colorbar()
 
