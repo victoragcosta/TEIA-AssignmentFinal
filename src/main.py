@@ -15,6 +15,7 @@ import pandas as pd
 import cnn
 import dlt
 import csvconverter
+import plot_tools
 
 # Argumentos do programa:
 parser = argparse.ArgumentParser(prog=f'{PROGRAM_NAME}',
@@ -24,8 +25,8 @@ parser.add_argument('-b', '--batch-size', default=10, type=int,
 parser.add_argument('-e', '--epoch-num', default=10, type=int,
                     dest='epoch_num',
                     help="number of training epochs run by the program.")
-parser.add_argument('--output-csv', default="train_history.csv", type=str,
-                    dest='filename_train',
+parser.add_argument('--output-prefix', default="res", type=str,
+                    dest='outputprefix',
                     help="output of train history as CSV file.")
 parser.add_argument('-f', '--format', default='spectrogram',
                     choices=["chroma_stft", "spectrogram"],
@@ -71,7 +72,7 @@ test_data = dlt_obj.get_test(n_audio=test_num)
 # Remove different input shapes
 first_shape = train_data[0][1][0].shape
 train_data = [x for x in train_data if x[1][0].shape == first_shape]
-test_data = [x for x in train_data if x[1][0].shape == first_shape]
+test_data = [x for x in test_data if x[1][0].shape == first_shape]
 
 ## Extract features with normalization:
 train_features = np.array([x[1][0]/800 for x in train_data])
@@ -107,4 +108,27 @@ history = cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=ar
 
 ## Save training history in .csv file
 csvconverter.savecsv(csvconverter.converter(history.history),
-                     args.filename_train)
+                     'results/' + args.outputprefix+'_trainhistory.csv')
+
+## Save model
+model.save('results/' + args.outputprefix+'_model.h5')
+
+## Save predicted
+y_train_pred = model.predict(x_train)
+y_train_pred = list(map(lambda x: np.argmax(x), y_train_pred))
+
+## Get train labels
+y_train_labels = list(map(lambda x: np.argmax(x), train_labels))
+
+plot_tools.plot_confusion_matrix(y_train_labels, y_train_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_train_confusion_matrix.png')
+
+## Save validation predicted
+y_test_pred = model.predict(x_test)
+y_test_pred = list(map(lambda x: np.argmax(x), y_test_pred))
+
+## Get validation labels
+y_test_labels = list(map(lambda x: np.argmax(x), test_labels))
+
+plot_tools.plot_confusion_matrix(y_test_labels, y_test_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_validation_confusion_matrix.png')
+plot_tools.get_and_plot_metrics(y_test_labels, y_test_pred, save_table=True, table_format='latex', file_path='results/', file_name=args.outputprefix+'_validation_metrics')
+
