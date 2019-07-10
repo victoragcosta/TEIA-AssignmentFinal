@@ -29,7 +29,7 @@ parser.add_argument('--output-prefix', default="res", type=str,
                     dest='outputprefix',
                     help="output of train history as CSV file.")
 parser.add_argument('-f', '--format', default='spectrogram',
-                    choices=["chroma_stft", "spectrogram"],
+                    choices=["chroma_stft", "spectrogram", "melspectrogram", "mfcc"],
                     help="music format used to train the neural network.")
 parser.add_argument('-l', '--clip-length', default=100, type=int,
                     dest='clip_length',
