@@ -5,7 +5,7 @@ from keras.layers.core import Activation, Dense, Flatten, Dropout
 
 def init(input_shape, 
          cnn_format=[
-           {'n_filters': 4, 'window_size' : (8,8), 'pool_size': (2,2), 'dropout': 0.25},
+           {'n_filters': 4, 'window_size' : (4,4), 'pool_size': (2,2), 'dropout': 0.25},
            {'n_filters': 4, 'window_size' : (4,4), 'pool_size': (2,2), 'dropout': 0.25}
          ], 
          mlp_hidden_layers=[200], 
