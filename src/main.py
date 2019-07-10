@@ -4,18 +4,8 @@
 PROGRAM_NAME = 'musiclassifier'
 VERSION_NUM = '0.0.1'
 
-# Bibliotecas:
+# Faz o parse primeiro, depois carrega. O programa responde a -h e -v mais rápido
 import argparse
-import keras
-from keras import backend as K
-import numpy as np
-import pandas as pd
-
-# Módulos de usuário:
-import cnn
-import dlt
-import csvconverter
-import plot_tools
 
 # Argumentos do programa:
 parser = argparse.ArgumentParser(prog=f'{PROGRAM_NAME}',
@@ -28,6 +18,9 @@ parser.add_argument('-e', '--epoch-num', default=10, type=int,
 parser.add_argument('--output-prefix', default="res", type=str,
                     dest='outputprefix',
                     help="output of train history as CSV file.")
+parser.add_argument('--input-prefix', default="res", type=str,
+                    dest='inputprefix',
+                    help="input prefix for loading models.")
 parser.add_argument('-f', '--format', default='spectrogram',
                     choices=["chroma_stft", "spectrogram", "melspectrogram", "mfcc"],
                     help="music format used to train the neural network.")
@@ -50,7 +43,26 @@ parser.add_argument('-t', '--train-percent', default=70, type=int,
                     "used in tests).")
 parser.add_argument('-v', '--version', action='version',
                     version=f'%(prog)s {VERSION_NUM}')
+parser.add_argument('-L', '--load',
+                    dest='should_load', action='store_true',
+                    help="if it is present, it will load a model based on "+
+                    "the --input-prefix name given. If not present, it will "+
+                    "create a new one.")
+parser.set_defaults(should_load=False)
 args = parser.parse_args()
+
+# Bibliotecas:
+import keras
+from keras.models import load_model
+from keras import backend as K
+import numpy as np
+import pandas as pd
+
+# Módulos de usuário:
+import cnn
+import dlt
+import csvconverter
+import plot_tools
 
 ## Training settings:
 num_classes = 10
@@ -103,7 +115,16 @@ print("Data extracted!")
 
 # Train model:
 
-model = cnn.init(input_shape)
+if args.should_load:
+    model = load_model('results/' + args.inputprefix+'_model.h5')
+else:
+    model = cnn.init(
+        input_shape,
+        cnn_format=[
+            {'n_filters': 4, 'window_size' : (8,8), 'pool_size': (2,2), 'dropout': 0.25},
+            {'n_filters': 4, 'window_size' : (4,4), 'pool_size': (2,2), 'dropout': 0.25}
+        ]
+    )
 history = cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=args.epoch_num)
 
 ## Save training history in .csv file
@@ -131,4 +152,3 @@ y_test_labels = list(map(lambda x: np.argmax(x), test_labels))
 
 plot_tools.plot_confusion_matrix(y_test_labels, y_test_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_validation_confusion_matrix.png')
 plot_tools.get_and_plot_metrics(y_test_labels, y_test_pred, save_table=True, table_format='latex', file_path='results/', file_name=args.outputprefix+'_validation_metrics')
-
