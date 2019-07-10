@@ -55,80 +55,104 @@ args = parser.parse_args()
 ## Training settings:
 num_classes = 10
 
-# Data extraction:
-print("Extracting data... ")
-
+# Data loader initialization
 dlt_obj = dlt.DLT(format=args.format,
                   train_percent=args.train_percent,
                   sample_t_size=args.clip_length//10,
                   sample_split=args.split_num)
 
-train_num = (args.track_num * args.train_percent)//100
-test_num = (args.track_num * (100 - args.train_percent))//100
-
-train_data = dlt_obj.get_train(n_audio=train_num)
-test_data = dlt_obj.get_test(n_audio=test_num)
-
-# Remove different input shapes
-first_shape = train_data[0][1][0].shape
-train_data = [x for x in train_data if x[1][0].shape == first_shape]
-test_data = [x for x in test_data if x[1][0].shape == first_shape]
-
-## Extract features with normalization:
-train_features = np.array([x[1][0]/800 for x in train_data])
-test_features = np.array([x[1][0]/800 for x in test_data])
-
-## Extract and format outputs:
-train_labels = np.array([x[0] for x in train_data])
-test_labels = np.array([x[0] for x in test_data])
-
-train_labels = keras.utils.to_categorical(train_labels, num_classes)
-test_labels = keras.utils.to_categorical(test_labels, num_classes)
-
-## Format backend data:
-
-img_rows = len(train_features[0])
-img_cols = len(train_features[0][0])
-
-if K.image_data_format() == 'channels_first':
-    x_train = train_features.reshape(len(train_features), 1, img_rows, img_cols)
-    x_test = test_features.reshape(len(test_features), 1, img_rows, img_cols)
-    input_shape = (1, img_rows, img_cols)
-else:
-    x_train = train_features.reshape(len(train_features), img_rows, img_cols, 1)
-    x_test = test_features.reshape(len(test_features), img_rows, img_cols, 1)
-    input_shape = (img_rows, img_cols, 1)
-
-print("Data extracted!")
-
-# Train model:
-
+# Train initial model:
 model = cnn.init(input_shape)
-history = cnn.train(model, x_train, train_labels, x_test, test_labels, epochs=args.epoch_num)
+training_stats = {}
 
-## Save training history in .csv file
-csvconverter.savecsv(csvconverter.converter(history.history),
-                     'results/' + args.outputprefix+'_trainhistory.csv')
+# Train while examples found
+while True:
+    try:
+        x_train, y_train, x_test, y_test = load_data_batch(dlt_obj, 100)
+    except:
+        break
+    history = cnn.train(model, x_train, y_train, x_test, y_test, epochs=args.epoch_num)
+    
+    ## Append new training stats
+    for key in history.history.keys():
+        training_stats[key] = training_stats[key] + history.history[key]
+        
+    save_batch_info(model, x_train, y_train, x_test, y_test)
+    
+save_model_info(model, training_stats)
 
-## Save model
-model.save('results/' + args.outputprefix+'_model.h5')
 
-## Save predicted
-y_train_pred = model.predict(x_train)
-y_train_pred = list(map(lambda x: np.argmax(x), y_train_pred))
+def load_data_batch(dlt_obj, batch_size):
+    print("Extracting data batch... ")
+    train_num = (args.track_num * args.train_percent)//100
+    test_num = (args.track_num * (100 - args.train_percent))//100
+    
+    train_data = dlt_obj.get_train(n_audio=train_num)
+    if train_data is None: raise Exception("No more data!")
+    
+    test_data = dlt_obj.get_test(n_audio=test_num)
+    if test_data is None: raise Exception("No more data!")
+    
+    # Remove different input shapes
+    first_shape = train_data[0][1][0].shape
+    train_data = [x for x in train_data if x[1][0].shape == first_shape]
+    test_data = [x for x in test_data if x[1][0].shape == first_shape]
+    
+    ## Extract features with normalization:
+    train_features = np.array([x[1][0]/800 for x in train_data])
+    test_features = np.array([x[1][0]/800 for x in test_data])
+    
+    ## Extract and format outputs:
+    y_train = np.array([x[0] for x in train_data])
+    y_test = np.array([x[0] for x in test_data])
+    
+    y_train = keras.utils.to_categorical(y_train, num_classes)
+    y_test = keras.utils.to_categorical(y_test, num_classes)
+    
+    ## Format backend data:
+    
+    img_rows = len(train_features[0])
+    img_cols = len(train_features[0][0])
+    
+    if K.image_data_format() == 'channels_first':
+        x_train = train_features.reshape(len(train_features), 1, img_rows, img_cols)
+        x_test = test_features.reshape(len(test_features), 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
+    else:
+        x_train = train_features.reshape(len(train_features), img_rows, img_cols, 1)
+        x_test = test_features.reshape(len(test_features), img_rows, img_cols, 1)
+        input_shape = (img_rows, img_cols, 1)
+        
+    print("Data batch extracted... ")
+        
+    return x_train, y_train, x_test, y_test
 
-## Get train labels
-y_train_labels = list(map(lambda x: np.argmax(x), train_labels))
 
-plot_tools.plot_confusion_matrix(y_train_labels, y_train_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_train_confusion_matrix.png')
+def save_model_info(model, training_stats):
+    ## Save training history in .csv file
+    csvconverter.savecsv(csvconverter.converter(training_stats),
+                         'results/' + args.outputprefix+'_trainhistory.csv')
+    
+    ## Save model
+    model.save('results/' + args.outputprefix+'_model.h5')
 
-## Save validation predicted
-y_test_pred = model.predict(x_test)
-y_test_pred = list(map(lambda x: np.argmax(x), y_test_pred))
-
-## Get validation labels
-y_test_labels = list(map(lambda x: np.argmax(x), test_labels))
-
-plot_tools.plot_confusion_matrix(y_test_labels, y_test_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_validation_confusion_matrix.png')
-plot_tools.get_and_plot_metrics(y_test_labels, y_test_pred, save_table=True, table_format='latex', file_path='results/', file_name=args.outputprefix+'_validation_metrics')
-
+def save_batch_info(model, x_train, y_train, x_test, y_test);
+    ## Save predicted
+    y_train_pred = model.predict(x_train)
+    y_train_pred = list(map(lambda x: np.argmax(x), y_train_pred))
+    
+    ## Get train labels
+    y_train_labels = list(map(lambda x: np.argmax(x), y_train))
+    
+    plot_tools.plot_confusion_matrix(y_train_labels, y_train_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_train_confusion_matrix.png')
+    
+    ## Save validation predicted
+    y_test_pred = model.predict(x_test)
+    y_test_pred = list(map(lambda x: np.argmax(x), y_test_pred))
+    
+    ## Get validation labels
+    y_test_labels = list(map(lambda x: np.argmax(x), y_test))
+    
+    plot_tools.plot_confusion_matrix(y_test_labels, y_test_pred, save_image=True, image_path='results/', image_name=args.outputprefix+'_validation_confusion_matrix.png')
+    plot_tools.get_and_plot_metrics(y_test_labels, y_test_pred, save_table=True, table_format='latex', file_path='results/', file_name=args.outputprefix+'_validation_metrics')
+    
