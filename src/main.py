@@ -56,8 +56,12 @@ dlt_obj = dlt.DLT(format=args.format,
 train_num = (args.track_num * args.train_percent)//100
 test_num = (args.track_num * (100 - args.train_percent))//100
 
-train_data = dlt_obj.get_train(n_audio=train_num)
-test_data = dlt_obj.get_test(n_audio=test_num)
+train_data = dlt_obj.get_train(
+  n_audio=train_num,
+)
+test_data = dlt_obj.get_test(
+  n_audio=test_num
+)
 
 print("Data extracted!")
 

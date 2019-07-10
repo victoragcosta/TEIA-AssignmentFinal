@@ -27,6 +27,8 @@ import librosa.display
 
 import matplotlib.pyplot as plt
 import numpy as np
+import json
+import decimal
 
 DEBUG = False
 
@@ -60,7 +62,7 @@ class DLT:
         else:
             raise Exception("Invalid Format!")
 
-    def get_train(self, n_audio=100, save_CSV=False, file_path="", file_name=""):
+    def get_train(self, n_audio=100, save_JSON=False, file_path="", file_name=""):
         """Return/save the set of train based in train_percent attribute
 
         :param n_audio:(int, default=100) - number of audios to read. PS: the quantity of samples will be n_audio*(audio_duration//sample_t_size)
@@ -85,7 +87,12 @@ class DLT:
             genre_index = self.n_unread_audios.index(max(self.n_unread_audios))
             ret = ret + self.__read_one_audio(genre_index)
 
-        return rnd.shuffle(ret) if self.shuffler else ret
+        ret = rnd.shuffle(ret) if self.shuffler else ret
+
+        if save_JSON:
+            save(ret, file_path+'/'+file_name)
+
+        return ret
 
     def get_test(self, n_audio=100):
         """Return/save the set of train based in train_percent attribute
@@ -108,7 +115,9 @@ class DLT:
             genre_index = self.n_unread_audios.index(max(self.n_unread_audios))
             ret = ret + self.__read_one_audio(genre_index)
 
-        return rnd.shuffle(ret) if self.shuffler else ret
+        ret = rnd.shuffle(ret) if self.shuffler else ret
+
+        return ret
 
     def get_labels(self):
         """Return all labels name in order
@@ -192,3 +201,26 @@ def plot_data(data, x_axis='time', y_axis='log', title='', plot=True, save=False
         plt.savefig(image_path + '/' + image_name)
     if plot:
         plt.show()
+
+def save(data, filename):
+    aux_data = data[:]
+    for i in range(len(aux_data)):
+        a = aux_data[i][1]
+        aux_data[i][1] = [
+            {'shape': arr.shape,'data': [float(num) for num in arr.flatten()]}
+            for arr in aux_data[i][1]
+        ]
+        del a
+    with open(filename, "w") as f:
+        json.dump(aux_data, f)
+
+def load(filename):
+    aux_data = []
+    with open(filename, "r") as f:
+        aux_data = json.load(f)
+    for item in aux_data:
+        item[1] = [
+            np.array(dic['data'], dtype=np.float32).reshape(dic['shape'])
+            for dic in item[1]
+        ]
+    return aux_data
