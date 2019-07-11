@@ -73,24 +73,25 @@ import plot_tools
 
 ## Main module functions
 def load_data_batch(dlt_obj, batch_size):
-    print("Extracting data batch... ")
     train_num = (batch_size * args.train_percent)//100
     test_num = (batch_size * (100 - args.train_percent))//100
     
+    print("Extracting data batch: " + str(train_num) + " for train and " + str(test_num) + " for test...")
+    
     train_data = dlt_obj.get_train(n_audio=train_num)
-    if train_data is None: raise Exception("No more data!")
+    if train_data is None: raise IndexError("No more data!")
     
     test_data = dlt_obj.get_test(n_audio=test_num)
-    if test_data is None: raise Exception("No more data!")
+    if test_data is None: raise IndexError("No more data!")
     
     # Add padding or remove examples with different shape
     first_shape = train_data[0][1][0].shape
     if args.enable_padding:
         dlt.extend_data(train_data, first_shape)
         dlt.extend_data(test_data, first_shape)
-    else:
-        train_data = [x for x in train_data if x[1][0].shape == first_shape]
-        test_data = [x for x in test_data if x[1][0].shape == first_shape]
+    
+    train_data = [x for x in train_data if x[1][0].shape == first_shape]
+    test_data = [x for x in test_data if x[1][0].shape == first_shape]
     
     ## Extract features with normalization:
     train_features = np.array([x[1][0]/800 for x in train_data])
@@ -186,7 +187,7 @@ while True:
     
     try:
         x_train, y_train, x_test, y_test, input_shape = load_data_batch(dlt_obj, args.data_batch)
-    except:
+    except IndexError:
         break
     
     # Create model if first time
