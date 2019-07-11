@@ -48,10 +48,14 @@ parser.add_argument('-L', '--load',
                     help="if it is present, it will load a model based on "+
                     "the --input-prefix name given. If not present, it will "+
                     "create a new one.")
+parser.add_argument('-p', '--padding',
+                    dest='enable_padding', action='store_true',
+                    help="enable padding, if not set it will remove examples that doesn't fit first example shape.")
 parser.add_argument('--data-batch', default=100, type=int,
                     dest='data_batch',
                     help="size of each data batch to load.")
 parser.set_defaults(should_load=False)
+parser.set_defaults(enable_padding=False)
 args = parser.parse_args()
 
 # Bibliotecas:
@@ -79,10 +83,14 @@ def load_data_batch(dlt_obj, batch_size):
     test_data = dlt_obj.get_test(n_audio=test_num)
     if test_data is None: raise Exception("No more data!")
     
-    # Add padding
+    # Add padding or remove examples with different shape
     first_shape = train_data[0][1][0].shape
-    dlt.extend_data(train_data, first_shape)
-    dlt.extend_data(test_data, first_shape)
+    if args.enable_padding:
+        dlt.extend_data(train_data, first_shape)
+        dlt.extend_data(test_data, first_shape)
+    else:
+        train_data = [x for x in train_data if x[1][0].shape == first_shape]
+        test_data = [x for x in test_data if x[1][0].shape == first_shape]
     
     ## Extract features with normalization:
     train_features = np.array([x[1][0]/800 for x in train_data])
