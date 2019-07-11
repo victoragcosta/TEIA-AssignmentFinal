@@ -137,7 +137,7 @@ class DLT:
 
         audio = lb.core.load(audio_name)[0]
         audio_duration = lb.core.get_duration(audio)
-        audio_n_samples = (np.math.floor(audio_duration)//self.sample_t_size) if self.sample_t_size else 1
+        audio_n_samples = (np.math.ceil(audio_duration)//self.sample_t_size) if self.sample_t_size else 1
         audio_sample_size = len(audio) // audio_n_samples
 
         ret = []
