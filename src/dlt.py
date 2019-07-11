@@ -157,7 +157,7 @@ class DLT:
                     self.f_function(audio_cut)
                 )
 
-                plt.show()
+                #plt.show()
 
             ret.append([genre_index, partial_ret])
 

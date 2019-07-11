@@ -186,11 +186,13 @@ while batch_num*args.data_batch < args.track_num:
     ## Append new training stats
     for key in history.history.keys():
         training_stats[key] = training_stats[key] + history.history[key]
-        
+    
+    print("Saving information... ")
     save_batch_info(model, x_train, y_train, x_test, y_test, batch_num)
     
     batch_num += 1
     
+print("Saving model and stats... ")
 save_model_info(model, training_stats)
 
 
