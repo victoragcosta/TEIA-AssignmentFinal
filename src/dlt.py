@@ -190,7 +190,7 @@ def extend_data(data, shape):
             # Add padding to x axis
             if feature.shape[1] < shape[1]:
                 x_padding_size = (shape[1] - feature.shape[1])
-                data[i][1][j] = np.pad(feature, ([0,0], [0, x_padding_size]), 'constant')
+                data[i][1][j] = np.pad(data[i][1][j], ([0,0], [0, x_padding_size]), 'constant')
 
 
 def plot_data(data, x_axis='time', y_axis='log', title='', plot=True, save=False, image_path="", image_name=""):

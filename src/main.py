@@ -54,6 +54,12 @@ parser.add_argument('-p', '--padding',
 parser.add_argument('--data-batch', default=100, type=int,
                     dest='data_batch',
                     help="size of each data batch to load.")
+parser.add_argument('--xmargin', default=2, type=int,
+                    dest='xmargin',
+                    help="x margin size to be used when calculates local max x size of features.")
+parser.add_argument('--ymargin', default=2, type=int,
+                    dest='ymargin',
+                    help="y margin size to be used when calculates local max y size of features.")
 parser.set_defaults(should_load=False)
 parser.set_defaults(enable_padding=False)
 args = parser.parse_args()
@@ -75,11 +81,11 @@ import plot_tools
 
 def get_max_shape(data1,data2):
     return (
-            np.array([x[1][0].shape[0] for x in data1]+[x[1][0].shape[0] for x in data2]).max(),
-            np.array([x[1][0].shape[1] for x in data1]+[x[1][0].shape[1] for x in data2]).max()
+            np.array([x[1][0].shape[0] for x in data1]+[x[1][0].shape[0] for x in data2]).max()+args.xmargin,
+            np.array([x[1][0].shape[1] for x in data1]+[x[1][0].shape[1] for x in data2]).max()+args.ymargin
            )
 
-def load_data_batch(dlt_obj, batch_size):
+def load_data_batch(dlt_obj, batch_size, globalShape):
     train_num = (batch_size * args.train_percent)//100
     test_num = (batch_size * (100 - args.train_percent))//100
     
@@ -92,15 +98,20 @@ def load_data_batch(dlt_obj, batch_size):
     if test_data is None: raise IndexError("No more data!")
     
     # Add padding or remove examples with different shape
-    first_shape = train_data[0][1][0].shape
-    maxshape = get_max_shape(train_data,test_data)
-    if args.enable_padding:
-        dlt.extend_data(train_data, maxshape)
-        dlt.extend_data(test_data, maxshape)
     
-    else:
-        train_data = [x for x in train_data if x[1][0].shape == first_shape]
-        test_data = [x for x in test_data if x[1][0].shape == first_shape]
+    if args.enable_padding:
+        if globalShape is None:
+            globalShape = get_max_shape(train_data,test_data)
+        dlt.extend_data(train_data, globalShape)
+        dlt.extend_data(test_data, globalShape)
+        
+    else: 
+        if globalShape is None:
+            globalShape = train_data[0][1][0].shape
+            print(globalShape)
+    
+    train_data = [x for x in train_data if x[1][0].shape == globalShape]
+    test_data = [x for x in test_data if x[1][0].shape == globalShape]
     
     ## Extract features with normalization:
     train_features = np.array([x[1][0]/800 for x in train_data])
@@ -129,7 +140,7 @@ def load_data_batch(dlt_obj, batch_size):
         
     print("Data batch extracted... ")
         
-    return x_train, y_train, x_test, y_test, input_shape
+    return x_train, y_train, x_test, y_test, input_shape, globalShape
 
 
 def save_model_info(model, training_stats):
@@ -184,6 +195,7 @@ training_stats = {'val_loss': [], 'val_acc': [], 'loss': [], 'acc': []}
 # Train while examples found
 batch_num = 0
 num_epochs = args.epoch_num
+globalShape = None
 while True:
     # Ask if it should stop
     if batch_num*args.data_batch >= args.track_num:
@@ -194,10 +206,8 @@ while True:
             batch_num = 0
             dlt_obj = load_dlt()
     
-    try:
-        x_train, y_train, x_test, y_test, input_shape = load_data_batch(dlt_obj, args.data_batch)
-    except IndexError:
-        break
+    x_train, y_train, x_test, y_test, input_shape, globalShape = load_data_batch(dlt_obj, args.data_batch, globalShape)
+
     
     # Create model if first time
     if model is None:
