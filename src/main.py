@@ -141,16 +141,18 @@ def save_batch_info(model, x_train, y_train, x_test, y_test, batch_num):
     
     plot_tools.plot_confusion_matrix(y_test_labels, y_test_pred, plot=False, save_image=True, image_path='results/', image_name=args.outputprefix+'_validation_confusion_matrix_' + str(batch_num) + '.png')
     plot_tools.get_and_plot_metrics(y_test_labels, y_test_pred, save_table=True, table_format='latex', file_path='results/', file_name=args.outputprefix+'_validation_metrics_' + str(batch_num))
-    
+
+def load_dlt():
+    return dlt.DLT(format=args.format,
+                  train_percent=args.train_percent,
+                  sample_t_size=args.clip_length//10,
+                  sample_split=args.split_num)
 
 ## Training settings:
 num_classes = 10
 
 # Data loader initialization
-dlt_obj = dlt.DLT(format=args.format,
-                  train_percent=args.train_percent,
-                  sample_t_size=args.clip_length//10,
-                  sample_split=args.split_num)
+dlt_obj = load_dlt()
 
 # Train initial model:
 if args.should_load:
@@ -163,7 +165,17 @@ training_stats = {'val_loss': [], 'val_acc': [], 'loss': [], 'acc': []}
 
 # Train while examples found
 batch_num = 0
-while batch_num*args.data_batch < args.track_num:
+num_epochs = args.epoch_num
+while True:
+    # Ask if it should stop
+    if batch_num*args.data_batch >= args.track_num:
+        num_epochs = int(input("Quantas épocas deseja ainda fazer? "))
+        if num_epochs == 0:
+            break
+        else:
+            batch_num = 0
+            dlt_obj = load_dlt()
+    
     try:
         x_train, y_train, x_test, y_test, input_shape = load_data_batch(dlt_obj, args.data_batch)
     except:
@@ -181,7 +193,7 @@ while batch_num*args.data_batch < args.track_num:
         )
     
     print("Training data epoch... ")
-    history = cnn.train(model, x_train, y_train, x_test, y_test, epochs=args.epoch_num)
+    history = cnn.train(model, x_train, y_train, x_test, y_test, epochs=num_epochs)
     
     ## Append new training stats
     for key in history.history.keys():
