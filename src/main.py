@@ -60,6 +60,9 @@ parser.add_argument('--xmargin', default=2, type=int,
 parser.add_argument('--ymargin', default=2, type=int,
                     dest='ymargin',
                     help="y margin size to be used when calculates local max y size of features.")
+parser.add_argument('--loop', default=1, type=int,
+                    dest='loop',
+                    help="number of times should train all dataset specified by -n.")
 parser.set_defaults(should_load=False)
 parser.set_defaults(enable_padding=False)
 args = parser.parse_args()
@@ -89,7 +92,7 @@ def load_data_batch(dlt_obj, batch_size, globalShape):
     train_num = (batch_size * args.train_percent)//100
     test_num = (batch_size * (100 - args.train_percent))//100
     
-    print("Extracting data batch: " + str(train_num) + " for train and " + str(test_num) + " for test...")
+    print("Extracting data batch: max " + str(train_num) + " for train and max " + str(test_num) + " for test...")
     
     train_data = dlt_obj.get_train(n_audio=train_num)
     if train_data is None: raise IndexError("No more data!")
@@ -108,7 +111,6 @@ def load_data_batch(dlt_obj, batch_size, globalShape):
     else: 
         if globalShape is None:
             globalShape = train_data[0][1][0].shape
-            print(globalShape)
     
     train_data = [x for x in train_data if x[1][0].shape == globalShape]
     test_data = [x for x in test_data if x[1][0].shape == globalShape]
@@ -196,18 +198,30 @@ training_stats = {'val_loss': [], 'val_acc': [], 'loss': [], 'acc': []}
 batch_num = 0
 num_epochs = args.epoch_num
 globalShape = None
+num_cycles = 0
 while True:
-    # Ask if it should stop
+    # End of cycle
     if batch_num*args.data_batch >= args.track_num:
-        num_epochs = int(input("Quantas épocas deseja ainda fazer? "))
-        if num_epochs == 0:
-            break
+        num_cycles += 1
+        
+        # All cycles executed, ask for more epoches
+        if num_cycles >= args.loop:
+            num_epochs = int(input("Quantas épocas deseja ainda fazer? (Será executado mais um ciclo) "))
+            if num_epochs == 0:
+                break
+            else:
+                batch_num = 0
+                dlt_obj = load_dlt()
+        
+        # Reset and start new cycle
         else:
             batch_num = 0
             dlt_obj = load_dlt()
-    
-    x_train, y_train, x_test, y_test, input_shape, globalShape = load_data_batch(dlt_obj, args.data_batch, globalShape)
-
+            
+    try:
+        x_train, y_train, x_test, y_test, input_shape, globalShape = load_data_batch(dlt_obj, args.data_batch, globalShape)
+    except IndexError:
+        break
     
     # Create model if first time
     if model is None:
