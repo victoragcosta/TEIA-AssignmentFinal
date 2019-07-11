@@ -187,8 +187,8 @@ while True:
         model = cnn.init(
             input_shape,
             cnn_format=[
-                {'n_filters': 4, 'window_size' : (4,4), 'pool_size': (2,2), 'dropout': 0.25},
-                {'n_filters': 4, 'window_size' : (4,4), 'pool_size': (2,2), 'dropout': 0.25}
+                {'n_filters': 6, 'window_size' : (4,4), 'pool_size': (4,4), 'dropout': 0.25},
+                {'n_filters': 6, 'window_size' : (4,4), 'pool_size': (4,4), 'dropout': 0.25}
             ]
         )
     
