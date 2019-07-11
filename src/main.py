@@ -72,6 +72,13 @@ import csvconverter
 import plot_tools
 
 ## Main module functions
+
+def get_max_shape(data1,data2):
+    return (
+            np.array([x[1][0].shape[0] for x in data1]+[x[1][0].shape[0] for x in data2]).max(),
+            np.array([x[1][0].shape[1] for x in data1]+[x[1][0].shape[1] for x in data2]).max()
+           )
+
 def load_data_batch(dlt_obj, batch_size):
     train_num = (batch_size * args.train_percent)//100
     test_num = (batch_size * (100 - args.train_percent))//100
@@ -86,12 +93,14 @@ def load_data_batch(dlt_obj, batch_size):
     
     # Add padding or remove examples with different shape
     first_shape = train_data[0][1][0].shape
+    maxshape = get_max_shape(train_data,test_data)
     if args.enable_padding:
-        dlt.extend_data(train_data, first_shape)
-        dlt.extend_data(test_data, first_shape)
+        dlt.extend_data(train_data, maxshape)
+        dlt.extend_data(test_data, maxshape)
     
-    train_data = [x for x in train_data if x[1][0].shape == first_shape]
-    test_data = [x for x in test_data if x[1][0].shape == first_shape]
+    else:
+        train_data = [x for x in train_data if x[1][0].shape == first_shape]
+        test_data = [x for x in test_data if x[1][0].shape == first_shape]
     
     ## Extract features with normalization:
     train_features = np.array([x[1][0]/800 for x in train_data])
