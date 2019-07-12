@@ -149,6 +149,7 @@ while batch_num*args.dataBatch < args.n:
 
 plot_tools.plot_confusion_matrix(ytrue_train, ypred_train, plot=False, save_image=True, image_path='results/', image_name=args.prefix+'_global_train_confusion_matrix.png')
 plot_tools.plot_confusion_matrix(ytrue_test, ypred_test, plot=False, save_image=True, image_path='results/', image_name=args.prefix+'_global_validation_confusion_matrix.png')
+plot_tools.get_and_plot_metrics(ytrue_test, ypred_test, save_table=True, table_format='latex', file_path='results/', file_name=args.prefix+'_global_validation_metrics')
 
 print("Acurácia global de treinamento: " + str((ytrue_train == ypred_train).sum()/len(ytrue_train)))
 print("Acurácia global de validação: " + str((ytrue_test == ypred_test).sum()/len(ytrue_test)))
