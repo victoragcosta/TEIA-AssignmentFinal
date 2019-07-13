@@ -57,6 +57,10 @@ class DLT:
             self.f_function = lambda x: librosa.amplitude_to_db(np.abs(librosa.stft(x)), ref=np.max)
         elif format == 'chroma_stft':
             self.f_function = lambda x: librosa.feature.chroma_stft(x)
+        elif format == 'melspectrogram':
+            self.f_function = lambda x: librosa.power_to_db(librosa.feature.melspectrogram(x), ref=np.max)
+        elif format == 'mfcc':
+            self.f_function = lambda x: librosa.feature.mfcc(x)
         else:
             raise Exception("Invalid Format!")
 
@@ -133,7 +137,7 @@ class DLT:
 
         audio = lb.core.load(audio_name)[0]
         audio_duration = lb.core.get_duration(audio)
-        audio_n_samples = (np.math.floor(audio_duration)//self.sample_t_size) if self.sample_t_size else 1
+        audio_n_samples = (np.math.ceil(audio_duration)//self.sample_t_size) if self.sample_t_size else 1
         audio_sample_size = len(audio) // audio_n_samples
 
         ret = []
@@ -153,7 +157,7 @@ class DLT:
                     self.f_function(audio_cut)
                 )
 
-                plt.show()
+                #plt.show()
 
             ret.append([genre_index, partial_ret])
 
@@ -164,6 +168,29 @@ class DLT:
         self.n_unread_audios[genre_index] -= 1
 
         return ret
+
+
+def extend_data(data, shape):
+    """Extend features, adding shape to assume the shape passed in params, only reshape to bigger size,
+    NOTE: this function change the data variable passed, to minimize use of RAM
+
+    e.g.: extend_data(data, (1052, 462))
+
+    :param data: ( n_sample * (label, n_splits*[feature_shape])) - Array of features of audios, e.g. array of spectrogram
+    :param shape: the new shape to reshape all features
+    """
+
+    for i, samples in enumerate(data):
+        for j, feature in enumerate(samples[1]):
+            # Add padding to y axis
+            if feature.shape[0] < shape[0]:
+                y_padding_size = (shape[0] - feature.shape[0])
+                data[i][1][j] = np.pad(feature, ([0, y_padding_size], [0,0]), 'constant')
+
+            # Add padding to x axis
+            if feature.shape[1] < shape[1]:
+                x_padding_size = (shape[1] - feature.shape[1])
+                data[i][1][j] = np.pad(data[i][1][j], ([0,0], [0, x_padding_size]), 'constant')
 
 
 def plot_data(data, x_axis='time', y_axis='log', title='', plot=True, save=False, image_path="", image_name=""):
